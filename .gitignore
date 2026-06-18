@@ -15,3 +15,5 @@ DOCUMENTOS/*.parquet
 DOCUMENTOS/WhatsApp*/
 **/WhatsApp Image *.jpeg
 **/WhatsApp Image *.jpg
+**/.pbi/localSettings.json
+**/.pbi/cache.abf

@@ -1,0 +1,13 @@
+desafio_analista:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: desafio-analista-499820
+      dataset: dbt_desafio_analista
+      threads: 4
+      timeout_seconds: 300
+      location: US
+      keyfile: "/home/nunerd/Área de trabalho/ANALISTA_DESAFIO/desafio-analista-499820-978397414cd8.json"
+

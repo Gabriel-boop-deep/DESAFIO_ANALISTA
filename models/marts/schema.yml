@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: mart_performance_tmae
+    description: Tabela principal para consumo no Power BI com performance, benchmarks, rankings e evolucao.
+    columns:
+      - name: data_referencia
+        tests:
+          - not_null
+      - name: distribuidora
+        tests:
+          - not_null
+      - name: tmae
+        tests:
+          - not_null
+  - name: mart_coelba_tmae
+    description: Recorte exclusivo da Neoenergia Coelba para monitoramento gerencial.
+  - name: mart_ranking_distribuidoras
+    description: Mart focada em comparacao, ranking e benchmark nacional.
+  - name: mart_componentes_tmae
+    description: Mart de decomposicao do TMAE em TMP, TMD e TME.
+  - name: mart_ml_features_tmae
+    description: Tabela de features para anomalias, clusters e tendencia.
+

@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: stg_atendimento_emergencial
+    description: >
+      Camada staging derivada do CSV real da ANEEL. O modelo pivota os
+      indicadores do formato long para uma linha analitica por
+      distribuidora/conjunto/periodo. O campo `TMM` do CSV e tratado como TMAE.
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "tmp is null or tmp >= 0"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "tmd is null or tmd >= 0"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "tme is null or tme >= 0"
+    columns:
+      - name: distribuidora
+        tests:
+          - not_null
+      - name: data_referencia
+        tests:
+          - not_null
+      - name: ano
+        tests:
+          - not_null
+      - name: mes
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+              quote: false
+      - name: tmae
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+      - name: flag_neoenergia_coelba
+        tests:
+          - accepted_values:
+              arguments:
+                values: [true, false]
+              quote: false
+      - name: regiao
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul', 'Norte', 'Nao informado']

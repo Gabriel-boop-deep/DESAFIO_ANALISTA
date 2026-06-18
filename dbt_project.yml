@@ -1,0 +1,39 @@
+name: desafio_analista
+version: 1.0.0
+config-version: 2
+
+profile: desafio_analista
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  desafio_analista:
+    +materialized: view
+    staging:
+      +schema: staging
+    intermediate:
+      +schema: intermediate
+    dimensions:
+      +materialized: table
+      +schema: dimensions
+    facts:
+      +materialized: table
+      +schema: facts
+    marts:
+      +materialized: view
+      +schema: marts
+
+vars:
+  neoenergia_coelba_aliases:
+    - "COELBA"
+    - "NEOENERGIA COELBA"
+    - "COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA"
+    - "CIA DE ELETRICIDADE DO ESTADO DA BAHIA"

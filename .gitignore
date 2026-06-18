@@ -1,0 +1,16 @@
+*.json
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+target/
+dbt_packages/
+logs/
+.DS_Store
+DADOS/
+DOCUMENTOS/*.parquet
+DOCUMENTOS/WhatsApp*/
+**/WhatsApp Image *.jpeg
+**/WhatsApp Image *.jpg

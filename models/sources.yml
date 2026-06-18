@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: raw_aneel
+    database: desafio-analista-499820
+    schema: raw_aneel
+    tables:
+      - name: indicador_atendimento_emergencial
+        description: >
+          Tabela raw carregada a partir do CSV real da ANEEL. As colunas foram
+          normalizadas para snake_case no momento da ingestao.
+        columns:
+          - name: dat_geracao_conjunto_dados
+            description: Data de geracao do conjunto na publicacao da ANEEL.
+          - name: sig_agente
+            description: Sigla/nome curto da distribuidora.
+          - name: num_cnpj
+            description: CNPJ do agente regulado.
+          - name: ide_conj_und_consumidoras
+            description: Identificador do conjunto de unidades consumidoras.
+          - name: dsc_conj_und_consumidoras
+            description: Descricao do conjunto de unidades consumidoras.
+          - name: sig_indicador
+            description: Tipo do indicador no formato long.
+          - name: ano_indice
+            description: Ano de competencia do indicador.
+          - name: num_periodo_indice
+            description: Mes de competencia do indicador.
+          - name: vlr_indice_enviado
+            description: Valor do indicador convertido para numerico.
+

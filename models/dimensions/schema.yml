@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: dim_distribuidora
+    description: Dimensao de distribuidoras com atributos geograficos e de grupo economico.
+    columns:
+      - name: sk_distribuidora
+        tests:
+          - not_null
+          - unique
+      - name: distribuidora
+        tests:
+          - not_null
+  - name: dim_tempo
+    description: Dimensao de tempo mensal para analise do TMAE.
+    columns:
+      - name: sk_tempo
+        tests:
+          - not_null
+          - unique
+      - name: data_referencia
+        tests:
+          - not_null
+          - unique
+

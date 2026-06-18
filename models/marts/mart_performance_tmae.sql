@@ -9,8 +9,6 @@ benchmarks as (
 ranking as (
     select
         distribuidora,
-        sigla_distribuidora,
-        id_conjunto_unidades_consumidoras,
         data_referencia,
         ranking_nacional,
         ranking_regional,
@@ -22,8 +20,6 @@ ranking as (
 evolucao as (
     select
         distribuidora,
-        sigla_distribuidora,
-        id_conjunto_unidades_consumidoras,
         data_referencia,
         tmae_mes_anterior,
         variacao_abs_mes_anterior,
@@ -37,17 +33,20 @@ select
     b.data_referencia,
     b.ano,
     b.mes,
+    format_date('%Y-%m', b.data_referencia) as ano_mes,
     b.distribuidora,
     b.sigla_distribuidora,
     b.uf,
     b.regiao,
     b.grupo_economico,
-    b.id_conjunto_unidades_consumidoras,
-    b.descricao_conjunto_unidades_consumidoras,
+    b.quantidade_conjuntos,
     b.tmp,
     b.tmd,
     b.tme,
     b.tmae,
+    b.tmae_calculado,
+    b.diferenca_tmae_calculado,
+    b.flag_tmae_inconsistente,
     b.quantidade_ocorrencias,
     b.tempo_total_atendimento,
     benchmarks.media_tmae_brasil,
@@ -72,7 +71,8 @@ select
     benchmarks.melhor_distribuidora_periodo,
     benchmarks.pior_distribuidora_periodo,
     benchmarks.benchmark_nacional,
-    b.flag_neoenergia_coelba
+    b.flag_neoenergia_coelba,
+    b.flag_registro_valido
 from base b
 left join benchmarks
     on b.distribuidora = benchmarks.distribuidora
@@ -81,12 +81,7 @@ left join benchmarks
    and b.grupo_economico = benchmarks.grupo_economico
 left join ranking
     on b.distribuidora = ranking.distribuidora
-   and b.sigla_distribuidora = ranking.sigla_distribuidora
-   and b.id_conjunto_unidades_consumidoras = ranking.id_conjunto_unidades_consumidoras
    and b.data_referencia = ranking.data_referencia
 left join evolucao
     on b.distribuidora = evolucao.distribuidora
-   and b.sigla_distribuidora = evolucao.sigla_distribuidora
-   and b.id_conjunto_unidades_consumidoras = evolucao.id_conjunto_unidades_consumidoras
    and b.data_referencia = evolucao.data_referencia
-

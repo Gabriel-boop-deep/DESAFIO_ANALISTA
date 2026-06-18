@@ -1,6 +1,7 @@
 with datas as (
     select distinct data_referencia, ano, mes
     from {{ ref('stg_atendimento_emergencial') }}
+    where data_referencia is not null
 )
 
 select
@@ -13,4 +14,3 @@ select
     case when extract(month from data_referencia) <= 6 then 'S1' else 'S2' end as semestre,
     format_date('%Y-%m', data_referencia) as ano_mes
 from datas
-

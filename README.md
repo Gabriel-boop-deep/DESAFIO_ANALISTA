@@ -106,11 +106,11 @@ dbt docs serve
 ## Camadas do modelo
 
 - `raw`: tabela carregada diretamente do CSV real com colunas normalizadas.
-- `staging`: pivot do dataset long para base mensal com `TMP`, `TMD`, `TME`, `TMAE`, `NumOcorr` e atributos auxiliares.
-- `intermediate`: regras de benchmark, ranking, evolucao e decomposicao.
+- `staging`: pivot do dataset long para base por conjunto e competencia, com flags de validade e reconciliacao do TMAE.
+- `intermediate`: consolidacao para uma linha por distribuidora por mes, alem das regras de benchmark, ranking, evolucao e decomposicao.
 - `dimensions`: `dim_distribuidora` e `dim_tempo`.
-- `facts`: `fct_tmae`.
-- `marts`: tabelas prontas para Power BI e ML.
+- `facts`: `fct_tmae` em granularidade mensal por distribuidora.
+- `marts`: tabelas prontas para Power BI e ML em granularidade mensal por distribuidora.
 
 ## Regras de negocio implementadas
 
@@ -118,11 +118,13 @@ dbt docs serve
 - `ranking_nacional` com `rank() over (partition by data_referencia order by tmae asc)`.
 - `diferenca_vs_brasil = tmae - media_tmae_brasil`.
 - `diferenca_percentual_vs_brasil = safe_divide(tmae - media_tmae_brasil, media_tmae_brasil)`.
-- Classificacao de performance por macro `classify_performance`.
+- Classificacao de performance com tratamento de nulos por macro `classify_performance`.
 - Participacao percentual de `TMP`, `TMD` e `TME` no TMAE.
 - Identificacao do principal componente do tempo.
-- Evolucao mensal com lag, variacao e tendencia.
+- Evolucao mensal por distribuidora, com `Sem historico`, `Estavel`, `Melhora` e `Piora`.
 - Flag robusta para identificar Neoenergia Coelba por alias.
+- Validacao da composicao com `tmae_calculado`, `diferenca_tmae_calculado` e `flag_tmae_inconsistente`.
+- Registros invalidos sinalizados na staging por `flag_*_valido`; apenas registros validos seguem para a camada analitica.
 
 ## Camada de machine learning
 
@@ -139,7 +141,7 @@ Saida gerada no BigQuery:
 
 ## Tabelas para Power BI
 
-- `mart_performance_tmae`: tabela principal.
+- `mart_performance_tmae`: tabela principal, com uma linha por distribuidora por mes.
 - `mart_coelba_tmae`: foco exclusivo em Coelba.
 - `mart_ranking_distribuidoras`: ranking e benchmark.
 - `mart_componentes_tmae`: decomposicao do TMAE.
@@ -170,12 +172,15 @@ python scripts/train_ml_model.py
 
 - O CSV real esta em formato long por indicador.
 - `TMM` foi assumido como representacao operacional do `TMAE`.
+- O mart principal foi consolidado para a granularidade `distribuidora + data_referencia`, que e a granularidade analitica esperada pelo desafio.
 - `UF`, `regiao` e `grupo_economico` sao derivados heuristica e documentalmente, porque nao existem como colunas explicitas no CSV.
 - `tempo_total_atendimento` e estimado por `tmae * quantidade_ocorrencias`.
+- As medias Brasil, regiao e grupo economico usam media simples sobre o TMAE mensal consolidado por distribuidora. Essa premissa foi mantida por clareza e comparabilidade.
 
 ## Limitacoes
 
 - A derivacao de `UF`, `regiao` e `grupo_economico` depende do nome do agente e pode exigir refinamento apos validacao com cadastro oficial.
+- `grupo_economico` e derivado heuristica, nao vindo nativamente do CSV.
+- O uso de `TMM` como proxy de `TMAE` depende da consistencia observada entre `TMM` e `TMP + TMD + TME`.
 - O ambiente local precisa das dependencias Python e do acesso ao BigQuery para execucao completa.
 - O modelo de ML prioriza interpretabilidade, nao a melhor acuracia estatistica possivel.
-

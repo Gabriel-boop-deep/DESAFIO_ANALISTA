@@ -9,35 +9,36 @@ models:
     tests:
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "tmp is null or tmp >= 0"
+            expression: "not flag_registro_valido or tmp is null or tmp >= 0"
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "tmd is null or tmd >= 0"
+            expression: "not flag_registro_valido or tmd is null or tmd >= 0"
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "tme is null or tme >= 0"
+            expression: "not flag_registro_valido or tme is null or tme >= 0"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "ano between 2000 and extract(year from current_date())"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "not flag_periodo_valido or data_referencia is not null"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "mes between 1 and 12 or not flag_registro_valido"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "tmae >= 0 or not flag_registro_valido"
     columns:
       - name: distribuidora
         tests:
           - not_null
-      - name: data_referencia
-        tests:
-          - not_null
-      - name: ano
-        tests:
-          - not_null
       - name: mes
+      - name: flag_registro_valido
         tests:
-          - not_null
           - accepted_values:
               arguments:
-                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                values: [true, false]
               quote: false
-      - name: tmae
-        tests:
-          - dbt_utils.expression_is_true:
-              arguments:
-                expression: ">= 0"
       - name: flag_neoenergia_coelba
         tests:
           - accepted_values:

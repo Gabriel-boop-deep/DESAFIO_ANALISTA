@@ -13,18 +13,20 @@ tempo as (
 select
     d.sk_distribuidora,
     t.sk_tempo,
-    b.id_conjunto_unidades_consumidoras,
-    b.descricao_conjunto_unidades_consumidoras,
+    b.quantidade_conjuntos,
     b.tmp,
     b.tmd,
     b.tme,
     b.tmae,
+    b.tmae_calculado,
+    b.diferenca_tmae_calculado,
+    b.flag_tmae_inconsistente,
     b.quantidade_ocorrencias,
-    b.tempo_total_atendimento
+    b.tempo_total_atendimento,
+    b.flag_registro_valido
 from base b
 left join distribuidora d
     on b.distribuidora = d.distribuidora
    and b.sigla_distribuidora = d.sigla_distribuidora
 left join tempo t
     on b.data_referencia = t.data_referencia
-

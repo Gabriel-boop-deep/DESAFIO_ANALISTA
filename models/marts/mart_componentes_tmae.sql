@@ -23,6 +23,9 @@ select
     b.tmd,
     b.tme,
     b.tmae,
+    b.tmae_calculado,
+    b.diferenca_tmae_calculado,
+    b.flag_tmae_inconsistente,
     b.participacao_tmp,
     b.participacao_tmd,
     b.participacao_tme,
@@ -35,4 +38,3 @@ select
     b.tme - brasil.tme_brasil as diferenca_tme_vs_brasil
 from base b
 left join brasil using (data_referencia)
-

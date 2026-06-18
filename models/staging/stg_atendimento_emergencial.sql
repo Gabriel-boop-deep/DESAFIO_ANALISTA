@@ -1,6 +1,6 @@
 with raw as (
     select
-        parse_date('%d-%m-%Y', dat_geracao_conjunto_dados) as data_geracao_conjunto,
+        safe.parse_date('%d-%m-%Y', dat_geracao_conjunto_dados) as data_geracao_conjunto,
         upper(trim(sig_agente)) as distribuidora_raw,
         cast(num_cnpj as string) as cnpj_distribuidora,
         safe_cast(ide_conj_und_consumidoras as int64) as id_conjunto_unidades_consumidoras,
@@ -10,8 +10,6 @@ with raw as (
         safe_cast(num_periodo_indice as int64) as mes,
         safe_cast(vlr_indice_enviado as float64) as valor_indicador
     from {{ source('raw_aneel', 'indicador_atendimento_emergencial') }}
-    where safe_cast(ano_indice as int64) is not null
-      and safe_cast(num_periodo_indice as int64) between 1 and 12
 ),
 
 enriched as (
@@ -19,7 +17,7 @@ enriched as (
         data_geracao_conjunto,
         distribuidora_raw,
         case
-            when regexp_contains(distribuidora_raw, r'COELBA|NEOENERGIA COELBA|COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA|CIA DE ELETRICIDADE DO ESTADO DA BAHIA')
+            when regexp_contains(distribuidora_raw, r'COELBA|NEOENERGIA COELBA|COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA|CIA DE ELETRICIDADE DO ESTADO DA BAHIA|COMPANHIA ELETRICIDADE ESTADO BAHIA')
                 then 'Neoenergia Coelba'
             when regexp_contains(distribuidora_raw, r'COSERN')
                 then 'Neoenergia Cosern'
@@ -36,10 +34,14 @@ enriched as (
         sig_indicador,
         ano,
         mes,
-        date(ano, mes, 1) as data_referencia,
+        case
+            when ano between 2000 and extract(year from current_date())
+             and mes between 1 and 12
+                then date(ano, mes, 1)
+        end as data_referencia,
         valor_indicador,
         case
-            when regexp_contains(distribuidora_raw, r'COELBA|NEOENERGIA COELBA|COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA|CIA DE ELETRICIDADE DO ESTADO DA BAHIA') then 'BA'
+            when regexp_contains(distribuidora_raw, r'COELBA|NEOENERGIA COELBA|COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA|CIA DE ELETRICIDADE DO ESTADO DA BAHIA|COMPANHIA ELETRICIDADE ESTADO BAHIA') then 'BA'
             when regexp_contains(distribuidora_raw, r'COSERN') then 'RN'
             when regexp_contains(distribuidora_raw, r'NEOENERGIA PE|CELPE') then 'PE'
             when regexp_contains(distribuidora_raw, r'NEOENERGIA BRASILIA') then 'DF'
@@ -85,7 +87,7 @@ enriched as (
             when regexp_contains(distribuidora_raw, r'LIGHT') then 'Light'
             else 'Outros'
         end as grupo_economico,
-        regexp_contains(distribuidora_raw, r'COELBA|NEOENERGIA COELBA|COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA|CIA DE ELETRICIDADE DO ESTADO DA BAHIA') as flag_neoenergia_coelba
+        regexp_contains(distribuidora_raw, r'COELBA|NEOENERGIA COELBA|COMPANHIA DE ELETRICIDADE DO ESTADO DA BAHIA|CIA DE ELETRICIDADE DO ESTADO DA BAHIA|COMPANHIA ELETRICIDADE ESTADO BAHIA') as flag_neoenergia_coelba
     from raw
 ),
 
@@ -120,7 +122,23 @@ pivoted as (
 final as (
     select
         *,
+        ano between 2000 and extract(year from current_date()) as flag_ano_valido,
+        mes between 1 and 12 as flag_mes_valido,
+        ano between 2000 and extract(year from current_date())
+            and mes between 1 and 12 as flag_periodo_valido,
+        distribuidora is not null as flag_distribuidora_valida,
+        tmae is not null and tmae >= 0 as flag_tmae_valido,
+        tmp is null or tmp >= 0 as flag_tmp_valido,
+        tmd is null or tmd >= 0 as flag_tmd_valido,
+        tme is null or tme >= 0 as flag_tme_valido,
+        tmp + tmd + tme as tmae_calculado,
         coalesce(tmae, coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0)) as tmae_recalculado,
+        coalesce(tmae, coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0))
+            - (coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0)) as diferenca_tmae_calculado,
+        abs(
+            coalesce(tmae, coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0))
+            - (coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0))
+        ) > 0.1 as flag_tmae_inconsistente,
         coalesce(
             quantidade_ocorrencias * coalesce(tmae, coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0)),
             0
@@ -128,6 +146,8 @@ final as (
         case
             when coalesce(tmae, coalesce(tmp, 0) + coalesce(tmd, 0) + coalesce(tme, 0)) < 0 then true
             when coalesce(tmp, 0) < 0 or coalesce(tmd, 0) < 0 or coalesce(tme, 0) < 0 then true
+            when distribuidora is null then true
+            when not (ano between 2000 and extract(year from current_date()) and mes between 1 and 12) then true
             else false
         end as flag_registro_invalido
     from pivoted
@@ -151,12 +171,23 @@ select
     tmd,
     tme,
     tmae_recalculado as tmae,
+    tmae_calculado,
+    diferenca_tmae_calculado,
+    flag_tmae_inconsistente,
     quantidade_ocorrencias,
     quantidade_interrupcoes,
     percentual_interrupcoes,
     dias_criticos,
     ocorrencias_em_dias_criticos,
     tempo_total_atendimento,
+    flag_ano_valido,
+    flag_mes_valido,
+    flag_periodo_valido,
+    flag_distribuidora_valida,
+    flag_tmae_valido,
+    flag_tmp_valido,
+    flag_tmd_valido,
+    flag_tme_valido,
+    not flag_registro_invalido as flag_registro_valido,
     flag_registro_invalido
 from final
-where not flag_registro_invalido

@@ -9,6 +9,14 @@ O objetivo e garantir que a apresentacao:
 - nao invente dados, colunas ou conclusoes
 - mostre dominio tecnico, analitico e executivo
 
+Obrigacoes do PowerPoint segundo o enunciado:
+- explicar a fonte de dados utilizada
+- explicar a modelagem aplicada
+- mostrar as principais transformacoes
+- deixar explicitas as premissas adotadas
+- trazer exemplos reais de codigos DAX
+- fechar com insight final sobre a performance da Neoenergia Coelba
+
 ## 1. Papel esperado do Claude
 
 O Claude deve agir como:
@@ -139,6 +147,33 @@ O Claude deve tratar isso como:
 - uma limitacao da cobertura do dado
 - nao como erro de modelagem
 
+### 3.5 Leitura atual da Coelba com base no BigQuery
+
+Numeros reais ja validados no projeto:
+- `TMAE medio historico da Coelba`: `473,78`
+- `TMAE medio historico nacional`: `221,11`
+- `ranking medio historico da Coelba`: `85,18`
+
+Ultimo periodo disponivel para a Coelba:
+- data: `2026-04-01`
+- `TMAE Coelba`: `481,06`
+- `media nacional`: `214,91`
+- `ranking nacional`: `87`
+- `classificacao`: `Critico`
+- `tendencia mensal`: `Melhora`
+- `tendencia anual`: `Melhora anual`
+
+Leitura executiva sustentada pelos dados:
+- a Coelba esta pior que a media nacional na base historica e no ultimo periodo disponivel
+- a posicao da Coelba no ranking nacional e baixa
+- apesar disso, os meses mais recentes mostram sinais de melhora frente ao proprio historico
+- o principal ponto de atencao e que a melhora recente ainda nao foi suficiente para aproximar a Coelba da media nacional
+
+Instrucao importante:
+- o Claude pode usar esses achados como narrativa
+- mas deve evitar apresentar os numeros como definitivos se o Power BI final ainda estiver sob filtros diferentes
+- quando falar de insight final, pode usar formulacoes como `no recorte validado do projeto` ou `na base consolidada analisada`
+
 ## 4. Arquivos visuais que o Claude deve considerar
 
 Os layouts do dashboard ja existem no Figma e foram analisados.
@@ -245,6 +280,7 @@ Objetivo:
 
 Conteudo esperado:
 - origem do CSV
+- mencionar que se trata de dado publico regulatorio monitorado pela ANEEL
 - formato long
 - encoding e separador
 - volume de linhas
@@ -266,6 +302,13 @@ Conteudo esperado:
 - papel da `mart_performance_tmae`
 - dimensoes principais
 - testes e documentacao
+- citar exemplos concretos:
+  - `fact_tmae`
+  - `dim_tempo`
+  - `dim_distribuidora`
+  - `mart_painel_executivo`
+  - `mart_ranking_distribuidoras`
+  - `mart_evolucao_tmae`
 
 Mensagem principal:
 - o projeto nao foi apenas um dashboard; foi uma base analitica estruturada para consumo confiavel
@@ -283,6 +326,9 @@ Conteudo esperado:
 - variacao mensal e anual
 - score invertido de performance
 - percentil, quartil e distancia ao benchmark/top 10
+- deixar clara a premissa:
+  - `menor TMAE = melhor`
+  - `variacao negativa = melhora`
 
 Mensagem principal:
 - a modelagem foi desenhada para responder perguntas executivas sem deixar a logica toda para o Power BI
@@ -297,6 +343,7 @@ Conteudo esperado:
 - o que a pagina responde
 - como a Coelba e comparada ao Brasil
 - destaque para `TMAE Medio Coelba`, `Ranking Coelba` e `Gap vs Nacional`
+- incluir 2 a 3 medidas DAX reais do projeto, nao apenas conceito
 
 Mensagem principal:
 - o painel executivo entrega uma leitura rapida do posicionamento atual da Coelba
@@ -357,6 +404,12 @@ Conteudo esperado:
 - principal limitacao temporal da base
 - recomendacoes de evolucao analitica
 
+Recomendacao de conteudo para esse slide, com base na base atual:
+- a Coelba aparece abaixo da media nacional no historico consolidado
+- o ranking medio sugere um ponto de atencao competitivo
+- os periodos mais recentes indicam melhora no curto prazo, mas ainda insuficiente para reverter a distancia frente ao mercado
+- recomendacao executiva: monitorar recorrencia da melhora, comparar com benchmarks nacionais e investigar os componentes que mais pressionam o TMAE
+
 Mensagem principal:
 - a entrega combina robustez tecnica com aplicabilidade executiva para apoiar leitura comparativa da Coelba frente ao setor
 
@@ -371,6 +424,18 @@ O Claude deve valorizar estes pontos:
 - score invertido coerente com o negocio
 - outliers e clustering explicaveis
 - preocupacao com leitura executiva
+
+## 9.1 Itens obrigatorios que o Claude deve explicitar
+
+O Claude precisa garantir que a apresentacao mostre explicitamente:
+- fonte de dados utilizada
+- indicador analisado
+- explicacao do `TMAE` como indicador regulatorio
+- modelagem aplicada
+- principais transformacoes
+- premissas adotadas
+- exemplos de DAX
+- insight final sobre a performance da Coelba
 
 ## 10. Tom das conclusoes
 
@@ -425,6 +490,38 @@ Se o Claude quiser referenciar os artefatos do projeto, os principais sao:
 - `models/marts/mart_performance_tmae.sql`
 - `models/marts/mart_componentes_tmae.sql`
 - `models/intermediate/int_tmae_ranking.sql`
+
+## 13.1 Exemplos reais de DAX que o Claude pode usar nos slides
+
+O Claude pode citar exemplos curtos como estes:
+
+```DAX
+TMAE Medio =
+AVERAGE(mart_performance_tmae[tmae])
+
+TMAE Medio Coelba =
+CALCULATE(
+    [TMAE Medio],
+    mart_performance_tmae[flag_neoenergia_coelba] = TRUE()
+)
+
+Ranking Coelba =
+CALCULATE(
+    MIN(mart_performance_tmae[ranking_nacional]),
+    mart_performance_tmae[flag_neoenergia_coelba] = TRUE()
+)
+
+Diferenca % Coelba vs Nacional =
+DIVIDE(
+    [TMAE Medio Coelba] - [TMAE Medio Nacional],
+    [TMAE Medio Nacional]
+)
+```
+
+Observacao importante para o Claude:
+- nao precisa lotar o slide com DAX
+- mostrar 3 ou 4 medidas centrais ja e suficiente
+- o foco do slide de DAX e provar dominio, nao virar apendice tecnico
 
 ## 14. Instrucao final ao Claude
 

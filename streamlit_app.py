@@ -15,6 +15,7 @@ from google.oauth2 import service_account
 PROJECT_ID = "desafio-analista-499820"
 PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_KEYFILE = PROJECT_ROOT / "desafio-analista-499820-978397414cd8.json"
+LOCAL_DATA_DIR = PROJECT_ROOT / "data" / "offline"
 COLOR_PRIMARY = "#003F7D"
 COLOR_GREEN = "#00A651"
 COLOR_GREEN_SOFT = "#34B233"
@@ -111,12 +112,28 @@ def run_query(query: str) -> pd.DataFrame:
     return client.query(query).to_dataframe()
 
 
+def local_table_path(table: str) -> Path:
+    return LOCAL_DATA_DIR / f"{table}.parquet"
+
+
+def load_local_table(table: str) -> pd.DataFrame | None:
+    path = local_table_path(table)
+    if not path.exists():
+        return None
+    return pd.read_parquet(path)
+
+
 def load_table(dataset: str, table: str) -> pd.DataFrame:
     query = f"select * from `{PROJECT_ID}.{dataset}.{table}`"
     return run_query(query)
 
 
-def try_load_table(dataset: str, table: str) -> pd.DataFrame | None:
+def try_load_table(dataset: str, table: str, allow_bigquery: bool = True) -> pd.DataFrame | None:
+    local_frame = load_local_table(table)
+    if local_frame is not None:
+        return local_frame
+    if not allow_bigquery:
+        return None
     try:
         return load_table(dataset, table)
     except NotFound:
@@ -147,20 +164,30 @@ def has_columns(frame: pd.DataFrame, columns: list[str]) -> bool:
 
 @st.cache_data(ttl=1800, show_spinner=False)
 def load_data() -> dict[str, pd.DataFrame | None]:
+    allow_bigquery = not LOCAL_DATA_DIR.exists()
     tables: dict[str, pd.DataFrame | None] = {
-        "performance": load_table("dbt_desafio_analista_marts", "mart_performance_tmae"),
-        "coelba": load_table("dbt_desafio_analista_marts", "mart_coelba_tmae"),
-        "ranking": load_table("dbt_desafio_analista_marts", "mart_ranking_distribuidoras"),
-        "componentes": load_table("dbt_desafio_analista_marts", "mart_componentes_tmae"),
-        "ml_features": load_table("dbt_desafio_analista_marts", "mart_ml_features_tmae"),
-        "ml_resultados": try_load_table("dbt_desafio_analista_marts", "ml_tmae_resultados"),
-        "dim_tempo": load_table("dbt_desafio_analista_dimensions", "dim_tempo"),
-        "dim_distribuidora": load_table("dbt_desafio_analista_dimensions", "dim_distribuidora"),
+        "performance": try_load_table("dbt_desafio_analista_marts", "mart_performance_tmae", allow_bigquery),
+        "coelba": try_load_table("dbt_desafio_analista_marts", "mart_coelba_tmae", allow_bigquery),
+        "ranking": try_load_table("dbt_desafio_analista_marts", "mart_ranking_distribuidoras", allow_bigquery),
+        "componentes": try_load_table("dbt_desafio_analista_marts", "mart_componentes_tmae", allow_bigquery),
+        "ml_features": try_load_table("dbt_desafio_analista_marts", "mart_ml_features_tmae", allow_bigquery),
+        "ml_resultados": try_load_table("dbt_desafio_analista_marts", "ml_tmae_resultados", allow_bigquery),
+        "dim_tempo": try_load_table("dbt_desafio_analista_dimensions", "dim_tempo", allow_bigquery),
+        "dim_distribuidora": try_load_table("dbt_desafio_analista_dimensions", "dim_distribuidora", allow_bigquery),
     }
 
     for name, frame in tables.items():
         tables[name] = enrich_time_columns(frame)
     return tables
+
+
+def detect_data_source(data: dict[str, pd.DataFrame | None]) -> str:
+    local_main = local_table_path("mart_performance_tmae")
+    if local_main.exists():
+        return "Arquivos locais Parquet"
+    if data.get("performance") is not None:
+        return "BigQuery"
+    return "Indisponivel"
 
 
 def format_number(value: float | int | None, suffix: str = "", digits: int = 2) -> str:
@@ -610,12 +637,18 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    with st.spinner("Carregando marts do BigQuery..."):
+    with st.spinner("Carregando dados analiticos..."):
         data = load_data()
+
+    source_label = detect_data_source(data)
+    if source_label == "Arquivos locais Parquet":
+        st.info("Fonte de dados ativa: arquivos locais Parquet em `data/offline/`.")
+    elif source_label == "BigQuery":
+        st.info("Fonte de dados ativa: BigQuery.")
 
     performance = data["performance"]
     if performance is None or performance.empty:
-        st.error("Nao foi possivel carregar a mart principal do BigQuery.")
+        st.error("Nao foi possivel carregar a mart principal nem por arquivos locais nem por BigQuery.")
         return
 
     filters = build_filters(performance)

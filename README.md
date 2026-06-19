@@ -171,11 +171,7 @@ streamlit run streamlit_app.py
 
 ## Dashboard Streamlit
 
-O projeto tambem inclui um dashboard executivo em Streamlit consumindo diretamente as marts do BigQuery:
-
-```bash
-streamlit run streamlit_app.py
-```
+O projeto tambem inclui um dashboard executivo em Streamlit. Agora ele prioriza arquivos locais em `data/offline/` e so depende do BigQuery se esses arquivos nao existirem.
 
 O app usa:
 
@@ -185,6 +181,41 @@ O app usa:
 - `mart_componentes_tmae`
 - `mart_ml_features_tmae`
 - `ml_tmae_resultados`, quando a camada de ML ja estiver materializada
+
+### Rodar sem BigQuery
+
+Para ambiente corporativo sem acesso ao BigQuery, use os arquivos locais exportados:
+
+```bash
+python3 scripts/export_marts_to_local.py
+python3 -m streamlit run streamlit_app.py
+```
+
+Arquivos gerados:
+
+- `data/offline/mart_performance_tmae.parquet`
+- `data/offline/mart_coelba_tmae.parquet`
+- `data/offline/mart_ranking_distribuidoras.parquet`
+- `data/offline/mart_componentes_tmae.parquet`
+- `data/offline/mart_ml_features_tmae.parquet`
+- `data/offline/ml_tmae_resultados.parquet`
+- `data/offline/dim_tempo.parquet`
+- `data/offline/dim_distribuidora.parquet`
+
+Depois da exportacao, o app roda offline:
+
+```bash
+python3 -m streamlit run streamlit_app.py
+```
+
+### Rodar com BigQuery
+
+Se quiser usar leitura online, mantenha a chave configurada e remova ou renomeie `data/offline/`.
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="/home/nunerd/Área de trabalho/ANALISTA_DESAFIO/desafio-analista-499820-978397414cd8.json"
+python3 -m streamlit run streamlit_app.py
+```
 
 ## Premissas tecnicas
 
@@ -200,5 +231,5 @@ O app usa:
 - A derivacao de `UF`, `regiao` e `grupo_economico` depende do nome do agente e pode exigir refinamento apos validacao com cadastro oficial.
 - `grupo_economico` e derivado heuristica, nao vindo nativamente do CSV.
 - O uso de `TMM` como proxy de `TMAE` depende da consistencia observada entre `TMM` e `TMP + TMD + TME`.
-- O ambiente local precisa das dependencias Python e do acesso ao BigQuery para execucao completa.
+- O ambiente local precisa das dependencias Python. Para o dashboard Streamlit, o acesso ao BigQuery deixa de ser obrigatorio quando `data/offline/` estiver preenchido.
 - O modelo de ML prioriza interpretabilidade, nao a melhor acuracia estatistica possivel.

@@ -1,52 +1,62 @@
 # Relacionamentos no Power BI
 
-## Modelo Recomendado
+## Modelo recomendado
 
-Mantenha ativo apenas o modelo principal:
+Use `mart_performance_tmae` como fato analitica principal.
 
-- `mart_performance_tmae[ano_mes]` -> `dim_tempo[ano_mes]`
-- `mart_performance_tmae[distribuidora]` -> `dim_distribuidora[distribuidora]`
+Relacionamentos ativos:
+- `dim_tempo[data_referencia]` -> `mart_performance_tmae[data_referencia]`
+- `dim_distribuidora[distribuidora]` -> `mart_performance_tmae[distribuidora]`
 
 Cardinalidade:
 - `1:*`
 
 Direcao de filtro:
-- somente da dimensao para a mart
+- somente da dimensao para a fato
 
-## Relacoes que devem ficar desativadas ou nem ser criadas
+## Tabelas adicionais
 
-- `fct_tmae` com dimensoes, se o relatorio for baseado nas marts
-- `mart_coelba_tmae` com dimensoes
-- `mart_componentes_tmae` com dimensoes
-- `mart_ranking_distribuidoras` com dimensoes
-- `mart_ml_features_tmae` com dimensoes
+Deixe desconectadas por padrao:
+- `mart_painel_executivo`
+- `mart_evolucao_tmae`
+- `mart_comparativo_coelba_nacional`
+- `mart_ranking_distribuidoras`
+- `mart_componentes_tmae`
+- `mart_score_performance`
+- `mart_outliers_tmae`
+- `mart_tendencia_tmae`
+- `mart_ml_features_tmae`
+- `ml_tmae_resultados`
 
 Motivo:
-- evita caminhos ambiguos de filtro
-- simplifica o comportamento dos slicers
-- reduz risco de numeros divergentes entre visuais
+- evita ambiguidade
+- simplifica os slicers
+- reduz divergencias entre paginas
 
-## Quando usar `fct_tmae`
+## Quando usar as marts desconectadas
 
-Somente se voce quiser:
-- depurar granularidade
-- validar a camada dimensional
-- criar uma pagina tecnica
+Use apenas se quiser:
+- montar paginas muito especificas sem carregar toda a `mart_performance_tmae`
+- validar resultados do dbt
+- criar uma aba tecnica ou de apoio
 
-Para o dashboard executivo, prefira `mart_performance_tmae`.
+Para o dashboard final do case, a melhor pratica e:
+- visuais principais baseados em `mart_performance_tmae`
+- pagina de componentes baseada em `mart_componentes_tmae`
+- pagina de machine learning baseada em `ml_tmae_resultados`
 
 ## Tabela de ML
 
 `ml_tmae_resultados`:
-- deixe desconectada por padrao
-- use `TREATAS` nas medidas DAX para cruzar com `mart_performance_tmae`
+- deixe desconectada
+- conecte a experiencia via medidas com `TREATAS`
 
 ## Slicers recomendados
 
 Use slicers a partir das dimensoes:
 - `dim_tempo[ano]`
 - `dim_tempo[ano_mes]`
+- `dim_tempo[trimestre]`
 - `dim_distribuidora[regiao]`
 - `dim_distribuidora[grupo_economico]`
 - `dim_distribuidora[distribuidora]`
-

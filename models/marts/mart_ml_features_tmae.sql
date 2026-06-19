@@ -23,9 +23,15 @@ select
     participacao_tmd,
     participacao_tme,
     principal_componente_tmae,
+    percentil_performance,
+    quartil_performance,
+    score_performance,
+    zscore_tmae_brasil,
+    flag_outlier_tmae,
+    distancia_para_benchmark,
+    distancia_para_top_10,
     ranking_nacional,
     ranking_regional,
     ranking_grupo,
     classificacao_performance
 from base
-

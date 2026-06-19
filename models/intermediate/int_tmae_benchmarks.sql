@@ -5,7 +5,11 @@ with base as (
 nacional as (
     select
         data_referencia,
-        avg(tmae) as media_tmae_brasil
+        avg(tmae) as media_tmae_brasil,
+        stddev_pop(tmae) as desvio_padrao_tmae_brasil,
+        min(tmae) as menor_tmae_brasil,
+        max(tmae) as maior_tmae_brasil,
+        count(*) as quantidade_distribuidoras_brasil
     from base
     group by 1
 ),
@@ -44,6 +48,10 @@ select
     b.regiao,
     b.grupo_economico,
     n.media_tmae_brasil,
+    n.desvio_padrao_tmae_brasil,
+    n.menor_tmae_brasil,
+    n.maior_tmae_brasil,
+    n.quantidade_distribuidoras_brasil,
     r.media_tmae_regiao,
     g.media_tmae_grupo,
     mp.melhor_distribuidora_periodo,
@@ -54,4 +62,3 @@ left join nacional n using (data_referencia)
 left join regional r using (data_referencia, regiao)
 left join grupo g using (data_referencia, grupo_economico)
 left join melhor_pior mp using (data_referencia)
-

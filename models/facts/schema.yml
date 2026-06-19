@@ -2,7 +2,13 @@ version: 2
 
 models:
   - name: fct_tmae
-    description: Fato mensal com metricas de atendimento emergencial por conjunto e distribuidora.
+    description: Fato mensal com metricas de atendimento emergencial na granularidade distribuidora por competencia.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_distribuidora
+              - sk_tempo
     columns:
       - name: sk_distribuidora
         tests:

@@ -2,11 +2,10 @@ version: 2
 
 models:
   - name: int_tmae_base_calculada
-    description: Base analitica limpa com TMAE consolidado e decomposicao percentual.
+    description: Base analitica mensal por distribuidora com TMAE consolidado, participacao dos componentes e granularidade pronta para benchmark.
   - name: int_tmae_benchmarks
-    description: Medias nacional, regional e por grupo economico, alem dos benchmarks por periodo.
+    description: Medias nacional, regional e por grupo economico, alem de estatisticas de dispersao e benchmark de melhor e pior desempenho por periodo.
   - name: int_tmae_ranking
     description: Rankings e percentis com regra de menor TMAE = melhor.
   - name: int_tmae_evolucao
-    description: Evolucao temporal com lag, variacao, media movel e tendencia.
-
+    description: Evolucao temporal com comparacao mensal e anual, media movel e sinalizacao de tendencia.

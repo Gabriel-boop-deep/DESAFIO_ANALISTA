@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: mart_performance_tmae
-    description: Tabela principal para consumo no Power BI com performance, benchmarks, rankings e evolucao.
+    description: Tabela principal para consumo no Power BI com performance, benchmarks, rankings, evolucao, outliers e sinalizadores prontos para analise executiva da Coelba versus mercado.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -19,6 +19,28 @@ models:
       - name: tmae
         tests:
           - not_null
+      - name: classificacao_performance
+        description: Classificacao executiva com a regra menor TMAE = melhor desempenho.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Excelente', 'Bom', 'Atencao', 'Critico', 'Sem classificacao']
+      - name: tendencia
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Sem historico', 'Estavel', 'Melhora', 'Piora']
+      - name: tendencia_anual
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Sem base anual', 'Estavel anual', 'Melhora anual', 'Piora anual']
+      - name: flag_outlier_tmae
+        tests:
+          - accepted_values:
+              arguments:
+                values: [true, false]
+              quote: false
       - name: flag_registro_valido
         tests:
           - accepted_values:
@@ -26,7 +48,7 @@ models:
                 values: [true, false]
               quote: false
   - name: mart_coelba_tmae
-    description: Recorte exclusivo da Neoenergia Coelba para monitoramento gerencial.
+    description: Recorte exclusivo da Neoenergia Coelba para monitoramento gerencial, comparacao com benchmark nacional e leitura executiva do indicador.
   - name: mart_ranking_distribuidoras
     description: Mart focada em comparacao, ranking e benchmark nacional.
   - name: mart_componentes_tmae

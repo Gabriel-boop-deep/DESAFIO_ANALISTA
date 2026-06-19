@@ -8,6 +8,10 @@ select
         partition by distribuidora
         order by data_referencia
     ) as tmae_mes_anterior,
+    lag(tmae, 12) over (
+        partition by distribuidora
+        order by data_referencia
+    ) as tmae_ano_anterior,
     tmae - lag(tmae) over (
         partition by distribuidora
         order by data_referencia
@@ -22,6 +26,20 @@ select
             order by data_referencia
         )
     ) as variacao_pct_mes_anterior,
+    tmae - lag(tmae, 12) over (
+        partition by distribuidora
+        order by data_referencia
+    ) as variacao_abs_ano_anterior,
+    safe_divide(
+        tmae - lag(tmae, 12) over (
+            partition by distribuidora
+            order by data_referencia
+        ),
+        lag(tmae, 12) over (
+            partition by distribuidora
+            order by data_referencia
+        )
+    ) as variacao_pct_ano_anterior,
     avg(tmae) over (
         partition by distribuidora
         order by data_referencia
@@ -53,5 +71,20 @@ select
             order by data_referencia
         ) > 0 then 'Piora'
         else 'Estavel'
-    end as tendencia
+    end as tendencia,
+    case
+        when lag(tmae, 12) over (
+            partition by distribuidora
+            order by data_referencia
+        ) is null then 'Sem base anual'
+        when tmae - lag(tmae, 12) over (
+            partition by distribuidora
+            order by data_referencia
+        ) < 0 then 'Melhora anual'
+        when tmae - lag(tmae, 12) over (
+            partition by distribuidora
+            order by data_referencia
+        ) > 0 then 'Piora anual'
+        else 'Estavel anual'
+    end as tendencia_anual
 from base

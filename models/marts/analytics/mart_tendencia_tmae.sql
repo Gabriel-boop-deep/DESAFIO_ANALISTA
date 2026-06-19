@@ -1,0 +1,22 @@
+select
+    data_referencia,
+    ano,
+    mes,
+    ano_mes,
+    distribuidora,
+    regiao,
+    grupo_economico,
+    tmae,
+    tmae_mes_anterior,
+    tmae_ano_anterior,
+    variacao_abs_mes_anterior,
+    variacao_pct_mes_anterior,
+    variacao_abs_ano_anterior,
+    variacao_pct_ano_anterior,
+    media_movel_3m,
+    tendencia,
+    tendencia_anual,
+    score_performance,
+    classificacao_performance,
+    flag_neoenergia_coelba
+from {{ ref('mart_performance_tmae') }}

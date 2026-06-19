@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: mart_score_performance
+    description: Base analitica com score invertido de performance, quartis e distancias para benchmark e top 10.
+  - name: mart_outliers_tmae
+    description: Recorte de distribuidoras e periodos classificados como outliers pelo z-score do TMAE.
+  - name: mart_tendencia_tmae
+    description: Base analitica de tendencia mensal e anual do TMAE por distribuidora.

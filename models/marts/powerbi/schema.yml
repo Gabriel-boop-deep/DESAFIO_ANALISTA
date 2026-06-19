@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: mart_painel_executivo
+    description: Base mensal da Neoenergia Coelba para a pagina Painel Executivo no Power BI.
+    columns:
+      - name: data_referencia
+        tests:
+          - not_null
+      - name: distribuidora
+        tests:
+          - not_null
+  - name: mart_evolucao_tmae
+    description: Base mensal da Neoenergia Coelba focada em comparacao temporal, variacoes e tendencia.
+  - name: mart_comparativo_coelba_nacional
+    description: Base consolidada para comparacao da Coelba contra Brasil, regiao, grupo economico e benchmark.

@@ -1,5 +1,8 @@
 # Checklist de Montagem no Power BI
 
+Project ID BigQuery:
+- `desafio-analista-499820`
+
 ## 1. Carga de tabelas
 
 Carregar:
@@ -67,4 +70,3 @@ Se `ml_tmae_resultados` nao existir no BigQuery:
 7. Montar `Evolucao Temporal`
 8. Montar `Componentes TMAE`
 9. Montar `Inteligencia Analitica`
-

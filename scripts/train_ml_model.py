@@ -18,9 +18,10 @@ from sklearn.preprocessing import StandardScaler
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 KEYFILE = PROJECT_ROOT / "desafio-analista-499820-978397414cd8.json"
 PROJECT_ID = "desafio-analista-499820"
-DATASET_ID = "dbt_desafio_analista"
-SOURCE_TABLE = f"{PROJECT_ID}.{DATASET_ID}.mart_performance_tmae"
-TARGET_TABLE = f"{PROJECT_ID}.{DATASET_ID}.ml_tmae_resultados"
+SOURCE_DATASET_ID = "dbt_desafio_analista_marts"
+TARGET_DATASET_ID = "dbt_desafio_analista_marts"
+SOURCE_TABLE = f"{PROJECT_ID}.{SOURCE_DATASET_ID}.mart_performance_tmae"
+TARGET_TABLE = f"{PROJECT_ID}.{TARGET_DATASET_ID}.ml_tmae_resultados"
 
 
 def build_client() -> bigquery.Client:
@@ -226,4 +227,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

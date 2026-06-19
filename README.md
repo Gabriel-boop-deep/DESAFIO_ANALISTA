@@ -166,7 +166,25 @@ dbt test
 dbt docs generate
 dbt docs serve
 python scripts/train_ml_model.py
+streamlit run streamlit_app.py
 ```
+
+## Dashboard Streamlit
+
+O projeto tambem inclui um dashboard executivo em Streamlit consumindo diretamente as marts do BigQuery:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+O app usa:
+
+- `mart_performance_tmae`
+- `mart_coelba_tmae`
+- `mart_ranking_distribuidoras`
+- `mart_componentes_tmae`
+- `mart_ml_features_tmae`
+- `ml_tmae_resultados`, quando a camada de ML ja estiver materializada
 
 ## Premissas tecnicas
 

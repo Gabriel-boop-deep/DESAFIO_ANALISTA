@@ -107,6 +107,47 @@ Crie slicers a partir das dimensoes:
 
 ## 6. Medidas DAX
 
+Antes das medidas, regra de ouro de origem:
+- quando houver a mesma ideia analitica em mais de uma tabela, prefira `mart_performance_tmae` como fonte principal
+- use `mart_componentes_tmae` apenas para a pagina de Componentes
+- use `ml_tmae_resultados` apenas para a pagina de Machine Learning
+
+### 6.0 Mapa de origem dos indicadores
+
+Esta secao existe para eliminar ambiguidade sobre de onde vem cada numero.
+
+| Indicador | Tabela base | Coluna(s) base | Observacao |
+|---|---|---|---|
+| TMAE Medio | `mart_performance_tmae` | `tmae` | media simples no contexto do filtro |
+| TMAE Medio Coelba | `mart_performance_tmae` | `tmae`, `flag_neoenergia_coelba` | filtro `TRUE()` para Coelba |
+| TMAE Medio Nacional | `mart_performance_tmae` | `media_tmae_brasil` | valor ja calculado no dbt |
+| Ranking Coelba | `mart_performance_tmae` | `ranking_nacional`, `flag_neoenergia_coelba` | menor ranking = melhor |
+| Total Distribuidoras | `mart_performance_tmae` | `quantidade_distribuidoras_brasil` | valor ja calculado no dbt |
+| Melhor TMAE Mercado | `mart_performance_tmae` | `menor_tmae_brasil` | menor TMAE do periodo |
+| Pior TMAE Mercado | `mart_performance_tmae` | `maior_tmae_brasil` | maior TMAE do periodo |
+| Percentil Coelba | `mart_performance_tmae` | `percentil_performance`, `flag_neoenergia_coelba` | percent rank calculado no dbt |
+| Quartil Coelba | `mart_performance_tmae` | `quartil_performance`, `flag_neoenergia_coelba` | `ntile(4)` calculado no dbt |
+| Distancia Coelba para Benchmark | `mart_performance_tmae` | `distancia_para_benchmark`, `flag_neoenergia_coelba` | gap entre Coelba e melhor TMAE do periodo |
+| Distancia Coelba para Top 10 | `mart_performance_tmae` | `distancia_para_top_10`, `flag_neoenergia_coelba` | gap para o limite do top 10 |
+| Score Performance Coelba | `mart_performance_tmae` | `score_performance`, `flag_neoenergia_coelba` | score invertido, maior = melhor |
+| Status Desempenho Coelba | `mart_performance_tmae` | `classificacao_performance`, `flag_neoenergia_coelba` | `Excelente`, `Bom`, `Atencao`, `Critico` |
+| TMAE Coelba Periodo Anterior | `mart_performance_tmae` | `tmae_mes_anterior`, `flag_neoenergia_coelba` | valor ja preparado no dbt |
+| TMAE Coelba Ano Anterior | `mart_performance_tmae` | `tmae_ano_anterior`, `flag_neoenergia_coelba` | valor ja preparado no dbt |
+| Variacao TMAE Coelba | `mart_performance_tmae` | `variacao_abs_mes_anterior`, `flag_neoenergia_coelba` | negativo = melhora |
+| Variacao % TMAE Coelba | `mart_performance_tmae` | `variacao_pct_mes_anterior`, `flag_neoenergia_coelba` | negativo = melhora |
+| Tendencia Coelba | `mart_performance_tmae` | `tendencia`, `flag_neoenergia_coelba` | `Melhora`, `Piora`, `Estavel` |
+| Tendencia Coelba Anual | `mart_performance_tmae` | `tendencia_anual`, `flag_neoenergia_coelba` | comparacao anual |
+| TMP Coelba | `mart_componentes_tmae` | `tmp`, `flag_neoenergia_coelba` | usar so na pagina Componentes |
+| TMD Coelba | `mart_componentes_tmae` | `tmd`, `flag_neoenergia_coelba` | usar so na pagina Componentes |
+| TME Coelba | `mart_componentes_tmae` | `tme`, `flag_neoenergia_coelba` | usar so na pagina Componentes |
+| Peso TMP no TMAE | `mart_componentes_tmae` | `participacao_tmp`, `flag_neoenergia_coelba` | participacao percentual |
+| Peso TMD no TMAE | `mart_componentes_tmae` | `participacao_tmd`, `flag_neoenergia_coelba` | participacao percentual |
+| Peso TME no TMAE | `mart_componentes_tmae` | `participacao_tme`, `flag_neoenergia_coelba` | participacao percentual |
+| Principal Componente Coelba | `mart_componentes_tmae` | `principal_componente_tmae`, `flag_neoenergia_coelba` | componente dominante |
+| Quantidade de Outliers | `ml_tmae_resultados` | `flag_anomalia` | pagina ML |
+| Cluster da Coelba | `ml_tmae_resultados` | `cluster_performance`, `distribuidora` | usar `TREATAS` |
+| Tendencia Prevista Coelba | `ml_tmae_resultados` | `tendencia_prevista`, `distribuidora` | usar `TREATAS` |
+
 ### 6.1 Base comum
 
 ```DAX
@@ -444,16 +485,27 @@ Como montar:
    - `TMAE Medio Coelba`
    - `Ranking Coelba`
    - `Diferenca Coelba vs Nacional`
+   Origem exata:
+   - `TMAE Medio Coelba` -> `mart_performance_tmae[tmae]` filtrando `flag_neoenergia_coelba = TRUE()`
+   - `Ranking Coelba` -> `mart_performance_tmae[ranking_nacional]` filtrando `flag_neoenergia_coelba = TRUE()`
+   - `Diferenca Coelba vs Nacional` -> diferenca entre `mart_performance_tmae[tmae]` filtrado para Coelba e `mart_performance_tmae[media_tmae_brasil]`
 3. No painel inferior esquerdo, insira grafico de linhas:
    - eixo: `dim_tempo[ano_mes]`
    - valores: `TMAE Medio Coelba` e `TMAE Medio Nacional`
+   Origem exata:
+   - serie Coelba -> `mart_performance_tmae[tmae]` com filtro `flag_neoenergia_coelba = TRUE()`
+   - serie Brasil -> `mart_performance_tmae[media_tmae_brasil]`
 4. No painel vertical direito, insira tabela/matriz com:
    - `ranking_nacional`
    - `distribuidora`
    - `tmae`
    - `diferenca_vs_brasil`
    - `classificacao_performance`
+   Origem exata:
+   - todos esses campos saem de `mart_performance_tmae`
 5. Adicione um card de texto com `Texto Insight Executivo`.
+   Origem exata:
+   - medida DAX derivada de `Ranking Coelba`, `Total Distribuidoras`, `Diferenca Coelba vs Nacional` e `Status Desempenho Coelba`
 
 ## 8. Pagina 2 - Ranking
 
@@ -474,10 +526,16 @@ Como montar:
    - `Melhor TMAE Mercado`
    - `Pior TMAE Mercado`
    - `Quartil Desempenho Coelba`
+   Origem exata:
+   - todos os cinco indicadores saem de `mart_performance_tmae`
+   - colunas usadas: `ranking_nacional`, `quantidade_distribuidoras_brasil`, `menor_tmae_brasil`, `maior_tmae_brasil`, `quartil_performance`
 3. No bloco central, use barras horizontais:
    - eixo Y: `mart_performance_tmae[distribuidora]`
    - eixo X: `TMAE Medio`
    - ordenacao crescente
+   Origem exata:
+   - eixo Y -> `mart_performance_tmae[distribuidora]`
+   - eixo X -> media de `mart_performance_tmae[tmae]`
 4. No bloco inferior, use matriz com:
    - `ranking_nacional`
    - `distribuidora`
@@ -486,6 +544,8 @@ Como montar:
    - `diferenca_vs_brasil`
    - `classificacao_performance`
    - `quartil_performance`
+   Origem exata:
+   - todos os campos saem de `mart_performance_tmae`
 
 ## 9. Pagina 3 - Evolucao
 
@@ -503,10 +563,20 @@ Como montar:
    - `Variacao TMAE Coelba`
    - `Variacao % TMAE Coelba`
    - `Status Evolucao`
+   Origem exata:
+   - `TMAE Medio Coelba` -> `mart_performance_tmae[tmae]`
+   - `TMAE Coelba Periodo Anterior` -> `mart_performance_tmae[tmae_mes_anterior]`
+   - `Variacao TMAE Coelba` -> `mart_performance_tmae[variacao_abs_mes_anterior]`
+   - `Variacao % TMAE Coelba` -> `mart_performance_tmae[variacao_pct_mes_anterior]`
+   - `Status Evolucao` -> medida derivada de `variacao_abs_mes_anterior`
 2. No painel grande inferior, use grafico de linhas com:
    - `TMAE Medio Coelba`
    - `TMAE Medio Nacional`
    - `Media Movel TMAE Coelba`
+   Origem exata:
+   - Coelba -> `mart_performance_tmae[tmae]`
+   - Nacional -> `mart_performance_tmae[media_tmae_brasil]`
+   - media movel -> `mart_performance_tmae[media_movel_3m]`
 3. No subtitulo ou nota visual, escreva:
    - `Variacao negativa indica melhora operacional`
 
@@ -527,13 +597,25 @@ Como montar:
    - `Principal Componente Coelba`
    - `Quartil Desempenho Coelba`
    - `Distancia Coelba para Benchmark`
+   Origem exata:
+   - `Principal Componente Coelba` -> `mart_componentes_tmae[principal_componente_tmae]`
+   - `Quartil Desempenho Coelba` -> `mart_performance_tmae[quartil_performance]`
+   - `Distancia Coelba para Benchmark` -> `mart_performance_tmae[distancia_para_benchmark]`
 2. No painel inferior, use barras empilhadas:
    - categoria: `dim_tempo[ano_mes]`
    - valores: `Peso TMP no TMAE`, `Peso TMD no TMAE`, `Peso TME no TMAE`
+   Origem exata:
+   - `Peso TMP no TMAE` -> `mart_componentes_tmae[participacao_tmp]`
+   - `Peso TMD no TMAE` -> `mart_componentes_tmae[participacao_tmd]`
+   - `Peso TME no TMAE` -> `mart_componentes_tmae[participacao_tme]`
 3. Se quiser enriquecer sem alterar layout, use tooltip com:
    - `TMP Coelba`
    - `TMD Coelba`
    - `TME Coelba`
+   Origem exata:
+   - `TMP Coelba` -> `mart_componentes_tmae[tmp]`
+   - `TMD Coelba` -> `mart_componentes_tmae[tmd]`
+   - `TME Coelba` -> `mart_componentes_tmae[tme]`
 
 ## 11. Pagina 5 - Machine Learning
 
@@ -553,6 +635,17 @@ Como montar:
 7. Bloco 7: heatmap de meses anomalos
 8. Bloco 8: ranking por score
 9. Bloco 9: card textual `Insight Avancado`
+
+Origem exata por bloco:
+- Bloco 1 -> `mart_performance_tmae[score_performance]` com filtro Coelba
+- Bloco 2 -> `ml_tmae_resultados[cluster_performance]` com `TREATAS`
+- Bloco 3 -> `ml_tmae_resultados[flag_anomalia]`
+- Bloco 4 -> `ml_tmae_resultados[tmae]` x `ml_tmae_resultados[score_anomalia]`
+- Bloco 5 -> `ml_tmae_resultados[tmae]` x `ml_tmae_resultados[tmae_previsto]`
+- Bloco 6 -> `ml_tmae_resultados[distribuidora]`, `cluster_performance`, `interpretacao_cluster`
+- Bloco 7 -> `ml_tmae_resultados[data_referencia]`, `flag_anomalia`
+- Bloco 8 -> ranking sobre `mart_performance_tmae[score_performance]`
+- Bloco 9 -> medida DAX textual derivada de `cluster_performance`, `tendencia_prevista` e `score_performance`
 
 ## 12. Validacoes finais obrigatorias
 

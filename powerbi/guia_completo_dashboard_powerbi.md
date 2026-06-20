@@ -92,6 +92,28 @@ Crie slicers a partir das dimensoes:
 - `dim_distribuidora[grupo_economico]`
 - `dim_distribuidora[distribuidora]`
 
+Regra obrigatoria para slicers:
+- sempre prefira os campos das dimensoes para slicers globais
+- nao use `ano_mes`, `regiao`, `grupo_economico` ou `distribuidora` diretamente das marts quando a dimensao equivalente existir
+- isso evita conflito entre colunas homonimas em tabelas diferentes
+
+Origem correta de cada slicer:
+- `Ano` -> `dim_tempo[ano]`
+- `Ano/Mes` -> `dim_tempo[ano_mes]`
+- `Trimestre` -> `dim_tempo[trimestre]`
+- `Regiao` -> `dim_distribuidora[regiao]`
+- `Grupo Economico` -> `dim_distribuidora[grupo_economico]`
+- `Distribuidora` -> `dim_distribuidora[distribuidora]`
+
+Campos que nao devem ser usados em slicers globais, apesar de existirem em outras tabelas:
+- `mart_performance_tmae[ano_mes]`
+- `mart_performance_tmae[regiao]`
+- `mart_performance_tmae[grupo_economico]`
+- `mart_performance_tmae[distribuidora]`
+- `mart_componentes_tmae[distribuidora]`
+- `mart_componentes_tmae[regiao]`
+- `ml_tmae_resultados[distribuidora]`
+
 ## 5. Preparacao antes de montar o dashboard
 
 1. Execute `dbt run`
@@ -481,6 +503,10 @@ Blocos identificados no Figma:
 
 Como montar:
 1. Coloque slicers de `ano`, `ano_mes` e `regiao` no bloco superior direito.
+   Origem exata dos slicers:
+   - `ano` -> `dim_tempo[ano]`
+   - `ano_mes` -> `dim_tempo[ano_mes]`
+   - `regiao` -> `dim_distribuidora[regiao]`
 2. No bloco `Principais Indicadores`, coloque tres cards:
    - `TMAE Medio Coelba`
    - `Ranking Coelba`
@@ -520,6 +546,11 @@ Blocos identificados no Figma:
 
 Como montar:
 1. Na faixa superior, use slicers de `ano_mes`, `regiao`, `grupo_economico` e `distribuidora`.
+   Origem exata dos slicers:
+   - `ano_mes` -> `dim_tempo[ano_mes]`
+   - `regiao` -> `dim_distribuidora[regiao]`
+   - `grupo_economico` -> `dim_distribuidora[grupo_economico]`
+   - `distribuidora` -> `dim_distribuidora[distribuidora]`
 2. Nos cinco cards, use:
    - `Ranking Coelba`
    - `Total Distribuidoras`
@@ -579,6 +610,9 @@ Como montar:
    - media movel -> `mart_performance_tmae[media_movel_3m]`
 3. No subtitulo ou nota visual, escreva:
    - `Variacao negativa indica melhora operacional`
+4. Se incluir slicers nessa pagina, use apenas:
+   - `dim_tempo[ano]`
+   - `dim_tempo[ano_mes]`
 
 ## 10. Pagina 4 - Componentes
 
@@ -612,6 +646,10 @@ Como montar:
    - `TMP Coelba`
    - `TMD Coelba`
    - `TME Coelba`
+4. Se incluir slicers nessa pagina, use:
+   - `dim_tempo[ano_mes]`
+   - `dim_distribuidora[distribuidora]`
+   Nunca use `mart_componentes_tmae[distribuidora]` como slicer global.
    Origem exata:
    - `TMP Coelba` -> `mart_componentes_tmae[tmp]`
    - `TMD Coelba` -> `mart_componentes_tmae[tmd]`
@@ -646,6 +684,11 @@ Origem exata por bloco:
 - Bloco 7 -> `ml_tmae_resultados[data_referencia]`, `flag_anomalia`
 - Bloco 8 -> ranking sobre `mart_performance_tmae[score_performance]`
 - Bloco 9 -> medida DAX textual derivada de `cluster_performance`, `tendencia_prevista` e `score_performance`
+
+Se incluir slicers nessa pagina:
+- `ano_mes` deve vir de `dim_tempo[ano_mes]`
+- `distribuidora` deve vir de `dim_distribuidora[distribuidora]`
+- nunca use `ml_tmae_resultados[distribuidora]` como slicer principal do relatorio
 
 ## 12. Validacoes finais obrigatorias
 

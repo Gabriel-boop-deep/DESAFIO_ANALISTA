@@ -127,14 +127,140 @@ Campos que nao devem ser usados em slicers globais, apesar de existirem em outra
 9. Crie as medidas DAX da secao 6
 10. Monte as paginas conforme as secoes 7 a 11
 
-## 6. Medidas DAX
+## 6. Como configurar valores numericos no Power BI
+
+Esta secao existe para evitar erro comum de montagem:
+- no Power BI, nao basta arrastar o campo certo
+- tambem precisa definir corretamente a forma de resumo
+
+Regra geral:
+- se existir uma `medida DAX`, prefira usar a medida no visual
+- use coluna bruta apenas quando o campo ja vier pronto para exibicao ou classificacao
+- para cards executivos, quase sempre prefira medidas
+
+### 6.1 Regras de agregacao
+
+Use estas configuracoes:
+
+| Caso | O que usar no visual | Tipo de resumo |
+|---|---|---|
+| KPI de TMAE | medida DAX | sem ajuste adicional |
+| KPI de ranking | medida DAX | sem ajuste adicional |
+| KPI de score | medida DAX | sem ajuste adicional |
+| KPI de percentual | medida DAX | sem ajuste adicional |
+| Serie temporal de TMAE | medida DAX | sem ajuste adicional |
+| Tabela/matriz com ranking | coluna pronta da mart | `Nao resumir` |
+| Tabela/matriz com nome de distribuidora | coluna pronta da mart ou dimensao | `Nao resumir` |
+| Tabela/matriz com classificacao textual | coluna pronta da mart | `Nao resumir` |
+| Campo numerico bruto em tabela detalhada | coluna da mart | `Nao resumir` |
+| Contagem de outliers | medida DAX | sem ajuste adicional |
+| Cluster | medida DAX ou coluna textual | `Nao resumir` se coluna |
+
+### 6.2 Resumo correto por tipo de campo
+
+Para evitar duvida, siga estas regras:
+
+- `TMAE`, `TMP`, `TMD`, `TME` em cards e graficos:
+  - usar medidas como `TMAE Medio`, `TMP Coelba`, `TMD Coelba`, `TME Coelba`
+  - nao arrastar a coluna bruta e deixar o Power BI decidir
+
+- `ranking_nacional`, `ranking_regional`, `quartil_performance`, `classificacao_performance` em tabelas:
+  - usar a coluna pronta da mart
+  - configurar como `Nao resumir`
+
+- `media_tmae_brasil`, `media_movel_3m`, `score_performance` em graficos:
+  - preferir medida
+  - se usar coluna em tabela detalhada, manter `Nao resumir`
+
+- `distribuidora`, `regiao`, `grupo_economico`, `ano_mes`:
+  - sempre `Nao resumir`
+
+- `flag_neoenergia_coelba`, `flag_outlier_tmae`, `flag_top_10_melhores`:
+  - nao usar como card numerico bruto
+  - usar em filtro, cor condicional ou medidas derivadas
+
+### 6.3 Formato recomendado para cards e visuais
+
+Use este padrao:
+
+| Indicador | Formato recomendado |
+|---|---|
+| TMAE, TMP, TMD, TME | numero decimal com 1 ou 2 casas |
+| Ranking | numero inteiro |
+| Total de distribuidoras | numero inteiro |
+| Distancia para benchmark/top 10 | numero decimal com 1 casa |
+| Score de performance | numero decimal com 1 casa |
+| Percentuais | formato percentual `%` |
+| Quartil textual | texto |
+| Status / classificacao | texto |
+
+### 6.4 Como tratar percentuais no Power BI
+
+Quando a medida representa percentual real, ha duas opcoes corretas.
+
+Opcao preferida:
+- manter a medida como numero decimal
+- no menu `Modelagem`, definir o formato como `Percentual`
+- ajustar casas decimais para `1` ou `2`
+
+Exemplo:
+- se a medida retorna `0,125`, o Power BI exibira `12,5%`
+
+Use essa abordagem para:
+- `Diferenca % Coelba vs Nacional`
+- `Variacao % TMAE Coelba`
+- `Variacao % TMAE Coelba YoY`
+- medidas de participacao percentual
+
+Opcao alternativa:
+- criar uma medida textual com `FORMAT`
+- usar apenas quando o card ou texto narrativo exigir composicao textual
+
+Exemplo textual:
+
+```DAX
+Diferenca % Coelba vs Nacional Texto =
+FORMAT([Diferenca % Coelba vs Nacional], "0.0%")
+```
+
+Regra importante:
+- medidas formatadas como texto nao devem ser usadas em eixo numerico, ordenacao numerica ou calculos posteriores
+- portanto, para graficos use a medida numerica
+- para cards narrativos ou frases, pode usar a versao texto
+
+### 6.5 Quando usar coluna bruta e quando usar medida
+
+Use medida DAX:
+- cards
+- KPIs
+- linhas de tendencia
+- colunas agregadas
+- comparativos Coelba vs Brasil
+- indicadores percentuais
+
+Use coluna bruta com `Nao resumir`:
+- tabelas detalhadas
+- matrizes de auditoria
+- labels textuais
+- classificacoes prontas da mart
+
+### 6.6 Checklist rapido de configuracao por visual
+
+Antes de fechar cada visual, valide:
+- o campo veio da tabela certa
+- se for texto, ficou `Nao resumir`
+- se for ranking em tabela, ficou `Nao resumir`
+- se for percentual, a medida esta como numero percentual ou texto formatado de forma consciente
+- se for card numerico, preferencialmente esta usando medida e nao coluna bruta
+
+## 7. Medidas DAX
 
 Antes das medidas, regra de ouro de origem:
 - quando houver a mesma ideia analitica em mais de uma tabela, prefira `mart_performance_tmae` como fonte principal
 - use `mart_componentes_tmae` apenas para a pagina de Componentes
 - use `ml_tmae_resultados` apenas para a pagina de Machine Learning
 
-### 6.0 Mapa de origem dos indicadores
+### 7.0 Mapa de origem dos indicadores
 
 Esta secao existe para eliminar ambiguidade sobre de onde vem cada numero.
 
@@ -170,7 +296,7 @@ Esta secao existe para eliminar ambiguidade sobre de onde vem cada numero.
 | Cluster da Coelba | `ml_tmae_resultados` | `cluster_performance`, `distribuidora` | usar `TREATAS` |
 | Tendencia Prevista Coelba | `ml_tmae_resultados` | `tendencia_prevista`, `distribuidora` | usar `TREATAS` |
 
-### 6.1 Base comum
+### 7.1 Base comum
 
 ```DAX
 TMAE Medio =
@@ -278,7 +404,7 @@ SWITCH(
 )
 ```
 
-### 6.2 Painel Executivo
+### 7.2 Painel Executivo
 
 ```DAX
 Texto Insight Executivo =
@@ -303,7 +429,7 @@ FORMAT([Ranking Coelba], "0")
     & FORMAT([Total Distribuidoras], "0")
 ```
 
-### 6.3 Ranking
+### 7.3 Ranking
 
 ```DAX
 TMAE Mediana Mercado =
@@ -325,7 +451,7 @@ RETURN
     )
 ```
 
-### 6.4 Evolucao
+### 7.4 Evolucao
 
 ```DAX
 TMAE Coelba Periodo Anterior =
@@ -394,7 +520,7 @@ CALCULATE(
 )
 ```
 
-### 6.5 Componentes
+### 7.5 Componentes
 
 ```DAX
 TMP Coelba =
@@ -440,7 +566,7 @@ CALCULATE(
 )
 ```
 
-### 6.6 Machine Learning
+### 7.6 Machine Learning
 
 ```DAX
 Quantidade de Outliers =
@@ -490,7 +616,7 @@ RETURN
         & "."
 ```
 
-## 7. Pagina 1 - Painel Executivo
+## 8. Pagina 1 - Painel Executivo
 
 Referencia visual:
 - `FIGMA/PAINEL_EXEC.png`
@@ -533,7 +659,7 @@ Como montar:
    Origem exata:
    - medida DAX derivada de `Ranking Coelba`, `Total Distribuidoras`, `Diferenca Coelba vs Nacional` e `Status Desempenho Coelba`
 
-## 8. Pagina 2 - Ranking
+## 9. Pagina 2 - Ranking
 
 Referencia visual:
 - `FIGMA/ranking.png`
@@ -578,7 +704,7 @@ Como montar:
    Origem exata:
    - todos os campos saem de `mart_performance_tmae`
 
-## 9. Pagina 3 - Evolucao
+## 10. Pagina 3 - Evolucao
 
 Referencia visual:
 - `FIGMA/evolucao.png`
@@ -614,7 +740,7 @@ Como montar:
    - `dim_tempo[ano]`
    - `dim_tempo[ano_mes]`
 
-## 10. Pagina 4 - Componentes
+## 11. Pagina 4 - Componentes
 
 Referencia visual:
 - `FIGMA/Componentes.png`
@@ -655,7 +781,7 @@ Como montar:
    - `TMD Coelba` -> `mart_componentes_tmae[tmd]`
    - `TME Coelba` -> `mart_componentes_tmae[tme]`
 
-## 11. Pagina 5 - Machine Learning
+## 12. Pagina 5 - Machine Learning
 
 Referencia visual:
 - `FIGMA/ML.png`
@@ -690,7 +816,7 @@ Se incluir slicers nessa pagina:
 - `distribuidora` deve vir de `dim_distribuidora[distribuidora]`
 - nunca use `ml_tmae_resultados[distribuidora]` como slicer principal do relatorio
 
-## 12. Validacoes finais obrigatorias
+## 13. Validacoes finais obrigatorias
 
 - ranking 1 deve sempre ter o menor TMAE
 - diferenca negativa vs Brasil deve indicar melhora
@@ -700,7 +826,7 @@ Se incluir slicers nessa pagina:
 - outlier nao significa automaticamente melhor desempenho
 - a apresentacao deve sinalizar que a Coelba vai ate `2026-04-01`, enquanto a base geral vai ate `2026-05-01`
 
-## 13. Arquivos complementares
+## 14. Arquivos complementares
 
 Se quiser consultar os arquivos separados, eles continuam disponiveis em:
 - `powerbi/medidas_dax.md`

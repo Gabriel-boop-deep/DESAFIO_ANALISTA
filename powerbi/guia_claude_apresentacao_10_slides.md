@@ -174,6 +174,15 @@ Instrucao importante:
 - mas deve evitar apresentar os numeros como definitivos se o Power BI final ainda estiver sob filtros diferentes
 - quando falar de insight final, pode usar formulacoes como `no recorte validado do projeto` ou `na base consolidada analisada`
 
+Insight final obrigatorio:
+- o Claude precisa fechar a apresentacao com uma conclusao clara sobre a Coelba
+- essa conclusao deve responder explicitamente:
+  - a Coelba esta melhor ou pior que a media nacional?
+  - a posicao da Coelba no ranking e boa ou preocupante?
+  - a evolucao recente mostra melhora, piora ou estabilidade?
+  - qual o principal ponto de atencao?
+  - qual recomendacao executiva faz mais sentido?
+
 ## 4. Arquivos visuais que o Claude deve considerar
 
 Os layouts do dashboard ja existem no Figma e foram analisados.
@@ -409,6 +418,11 @@ Recomendacao de conteudo para esse slide, com base na base atual:
 - o ranking medio sugere um ponto de atencao competitivo
 - os periodos mais recentes indicam melhora no curto prazo, mas ainda insuficiente para reverter a distancia frente ao mercado
 - recomendacao executiva: monitorar recorrencia da melhora, comparar com benchmarks nacionais e investigar os componentes que mais pressionam o TMAE
+
+Instrucao obrigatoria para o Claude nesse slide:
+- nao terminar de forma neutra ou vaga
+- precisa haver um fechamento executivo claro
+- o insight final deve ser tratado como um dos pontos mais importantes da apresentacao
 
 Mensagem principal:
 - a entrega combina robustez tecnica com aplicabilidade executiva para apoiar leitura comparativa da Coelba frente ao setor
